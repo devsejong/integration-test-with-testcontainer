@@ -3,13 +3,14 @@ package net.chandol.study.elasticsearch.book.repository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import net.chandol.study.elasticsearch.book.domain.Book;
+import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.query.MatchQueryBuilder;
+import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -35,6 +36,8 @@ public class BookRepositoryImpl implements BookRepository {
 
             updateRequest.doc(doc, XContentType.JSON);
             restHighLevelClient.update(updateRequest, RequestOptions.DEFAULT);
+
+            restHighLevelClient.indices().refresh(new RefreshRequest(), RequestOptions.DEFAULT);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -42,7 +45,7 @@ public class BookRepositoryImpl implements BookRepository {
 
     @Override
     public List<Book> findByTitle(String title) {
-        SearchSourceBuilder query = SearchSourceBuilder.searchSource().query(new MatchQueryBuilder("title", title));
+        SearchSourceBuilder query = SearchSourceBuilder.searchSource().query(new TermQueryBuilder("title", title));
         SearchRequest searchRequest = new SearchRequest("book");
         searchRequest.source(query);
         try {
